@@ -12,7 +12,10 @@ class ViewController: UIViewController {
     @IBOutlet var Flag1: UIButton!
     @IBOutlet var Flag2: UIButton!
     @IBOutlet var Flag3: UIButton!
+    
     var score = 0
+    var correctAnswer = 0
+    
     var countries = [String]()
     
     override func viewDidLoad() {
@@ -28,16 +31,43 @@ class ViewController: UIViewController {
         askQuestion()
     }
     
-    func askQuestion() {
+    func askQuestion(action: UIAlertAction! = nil) {
+        countries.shuffle()
+        correctAnswer = Int.random(in: 0...2)
+        
         Flag1.setImage(UIImage(named: countries[0]), for: .normal)
         Flag2.setImage(UIImage(named: countries[1]), for: .normal)
         Flag3.setImage(UIImage(named: countries[2]), for: .normal)
+        
+        title = countries[correctAnswer].uppercased()
     }
     
     func configFlagButton(_ button: UIButton) {
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.lightGray.cgColor
     }
-
+    
+    
+    @IBAction func buttonTapped(_ sender: UIButton) {
+        var title: String
+        
+        if sender.tag == correctAnswer {
+            title = "Correct!"
+            score += 1
+        } else {
+            title = "Wrong!"
+            score -= 1
+        }
+        
+        let ac = UIAlertController(
+            title: title,
+            message: "Your score is \(score)",
+            preferredStyle: .alert
+        )
+        
+        ac.addAction(UIAlertAction(title: "Continue", style: .default, handler: askQuestion))
+        present(ac, animated: true)
+    }
+    
 }
 
