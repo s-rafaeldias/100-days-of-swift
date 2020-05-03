@@ -15,6 +15,7 @@ class ViewController: UIViewController {
     
     var score = 0
     var correctAnswer = 0
+    var answeredQuestions = 0
     
     var countries = [String]()
     
@@ -39,7 +40,7 @@ class ViewController: UIViewController {
         Flag2.setImage(UIImage(named: countries[1]), for: .normal)
         Flag3.setImage(UIImage(named: countries[2]), for: .normal)
         
-        title = countries[correctAnswer].uppercased()
+        title = "Flag: \(countries[correctAnswer].uppercased()) - Score \(score)"
     }
     
     func configFlagButton(_ button: UIButton) {
@@ -47,9 +48,17 @@ class ViewController: UIViewController {
         button.layer.borderColor = UIColor.lightGray.cgColor
     }
     
+    func endGameMessage() {
+        answeredQuestions = 0
+        score = 0
+    }
     
     @IBAction func buttonTapped(_ sender: UIButton) {
         var title: String
+        var alertMessage: String
+        var buttonText: String
+        
+        answeredQuestions += 1
         
         if sender.tag == correctAnswer {
             title = "Correct!"
@@ -59,14 +68,24 @@ class ViewController: UIViewController {
             score -= 1
         }
         
+        if answeredQuestions >= 10 {
+            alertMessage = "Your final score is \(score)"
+            buttonText = "Play Again!"
+            endGameMessage()
+        } else {
+            alertMessage = "That's the flag of \(countries[sender.tag].capitalized).\n Your score is \(score)"
+            buttonText = "Continue"
+        }
+        
         let ac = UIAlertController(
             title: title,
-            message: "Your score is \(score)",
+            message: alertMessage,
             preferredStyle: .alert
         )
         
-        ac.addAction(UIAlertAction(title: "Continue", style: .default, handler: askQuestion))
+        ac.addAction(UIAlertAction(title: buttonText, style: .default, handler: askQuestion))
         present(ac, animated: true)
+
     }
     
 }
