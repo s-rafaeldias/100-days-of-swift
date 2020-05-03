@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+            
         countries += ["estonia", "france", "germany", "ireland", "italy", "monaco",
         "nigeria", "poland", "russia", "spain", "uk", "us"]
         
@@ -29,7 +29,23 @@ class ViewController: UIViewController {
         configFlagButton(Flag2)
         configFlagButton(Flag3)
 
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(showScore)
+        )
+        
         askQuestion()
+    }
+    
+    @objc func showScore() {
+        let alert = UIAlertController(
+            title: "Score",
+            message: "Your score is \(score)",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+        present(alert, animated: true)
     }
     
     func askQuestion(action: UIAlertAction! = nil) {

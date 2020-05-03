@@ -16,6 +16,7 @@ class ViewController: UITableViewController {
         
         title = "Storm View"
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(shareApp))
     
         let fm = FileManager.default
         let path = Bundle.main.resourcePath!
@@ -28,6 +29,13 @@ class ViewController: UITableViewController {
         }
         
         pictures.sort()
+    }
+    
+    @objc func shareApp() {
+        let urlApp = "https://rafaeldias.dev/my_app"
+        
+        let vc = UIActivityViewController(activityItems: [urlApp], applicationActivities: [])
+        present(vc, animated: true)
     }
  
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
