@@ -34,6 +34,7 @@ class ViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Picture", for: indexPath)
         
         cell.textLabel?.text = imageText(flags[indexPath.row])
+        cell.imageView?.image = UIImage(named: flags[indexPath.row])
         return cell
     }
     
