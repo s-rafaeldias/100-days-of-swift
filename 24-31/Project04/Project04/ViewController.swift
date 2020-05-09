@@ -29,16 +29,21 @@ class ViewController: UIViewController, WKNavigationDelegate {
             target: self,
             action: #selector(openTapped)
         )
+        
+        // Toolbar settings
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         let refresher = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
+        let goBack = UIBarButtonItem(barButtonSystemItem: .rewind, target: webView, action: #selector(webView.goBack))
+        let goForward = UIBarButtonItem(barButtonSystemItem: .fastForward, target: webView, action: #selector(webView.goForward))
         
         progressView = UIProgressView(progressViewStyle: .default)
         progressView.sizeToFit()
         let progressButton = UIBarButtonItem(customView: progressView)
         
-        toolbarItems = [progressButton, spacer, refresher]
+        toolbarItems = [progressButton, spacer, goBack, goForward, refresher]
         navigationController?.isToolbarHidden = false
         
+        // Create observer for progress status
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
         
         // Do any additional setup after loading the view.
@@ -77,11 +82,19 @@ class ViewController: UIViewController, WKNavigationDelegate {
         if let host = url?.host {
             for site in websites {
                 if host.contains(site) {
+                    print("\(site) is permitted")
                     decisionHandler(.allow)
                     return
                 }
             }
         }
+        
+        // Create alert of invalid page
+        let site = url?.absoluteString ?? "nil"
+        
+        let ac = UIAlertController(title: "Invalid page", message: "The page '\(site)' is blocked", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Close", style: .cancel, handler: nil))
+        present(ac, animated: true)
         
         decisionHandler(.cancel)
     }
