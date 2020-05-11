@@ -8,6 +8,24 @@
 
 import UIKit
 
+struct Answer {
+    var status: Bool
+    var errorTitle: String?
+    var errorMsg: String?
+    
+    init() {
+        self.status = true
+        self.errorTitle = nil
+        self.errorMsg = nil
+    }
+    
+    init(status: Bool, errorTitle: String?, errorMsg: String?) {
+        self.status = status
+        self.errorTitle = errorTitle
+        self.errorMsg = errorMsg
+    }
+}
+
 class ViewController: UITableViewController {
     var words = [String]()
     var usedWords = [String]()
@@ -43,7 +61,85 @@ class ViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    func submit(_ answer: String) {}
+    func isPossible(word: String) -> Answer {
+        var answer = Answer(
+            status: false,
+            errorTitle: "Word not possible",
+            errorMsg: "You can't spell that word from \(title!.lowercased())"
+        )
+        
+        guard var tempWord = title?.lowercased() else { return answer }
+
+        // TODO: Review implementation
+        for letter in word {
+            if let position = tempWord.firstIndex(of: letter) {
+                tempWord.remove(at: position)
+            } else {
+                return answer
+            }
+        }
+
+        answer.status = true
+        answer.errorMsg = nil
+        answer.errorTitle = nil
+        return answer
+    }
+    
+    func isOriginal(word: String) -> Answer {
+        let status = !usedWords.contains(word)
+        
+        if status { return Answer() }
+        return Answer(
+            status: status,
+            errorTitle: "Word already used!",
+            errorMsg: "Be more original!"
+        )
+    }
+    
+    func isReal(word: String) -> Answer {
+        let checker = UITextChecker()
+        let range = NSRange(location: 0, length: word.utf16.count)
+        let misspelledRange = checker.rangeOfMisspelledWord(
+            in: word,
+            range: range,
+            startingAt: 0,
+            wrap: false,
+            language: "en"
+        )
+        let status = misspelledRange.location == NSNotFound
+        if !status {
+            return Answer(
+                status: false,
+                errorTitle: "Word not recognizes",
+                errorMsg: "You can't just make up words, you know!"
+            )
+        } else { return Answer() }
+    }
+
+    /// Add the `answer` to `usedWords` if  the `answer` is original, real and possible.
+    func submit(_ answer: String) {
+        let lowerAnswer = answer.lowercased()
+        let original = isOriginal(word: lowerAnswer)
+        let real = isReal(word: lowerAnswer)
+        let possible = isPossible(word: lowerAnswer)
+        
+        if possible.status && real.status && original.status {
+            usedWords.insert(answer, at: 0)
+            
+            let indexPath = IndexPath(row: 0, section: 0)
+            tableView.insertRows(at: [indexPath], with: .automatic)
+            
+            return
+        } else {
+            let ac = UIAlertController(
+                title: possible.errorTitle ?? original.errorTitle ?? real.errorTitle!,
+                message: possible.errorMsg ?? original.errorMsg ?? real.errorMsg!,
+                preferredStyle: .alert
+            )
+            ac.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            present(ac, animated: true)
+        }
+    }
     
     @objc func promptForAnswer() {
         let ac = UIAlertController(title: "Enter answer", message: nil, preferredStyle: .alert)
