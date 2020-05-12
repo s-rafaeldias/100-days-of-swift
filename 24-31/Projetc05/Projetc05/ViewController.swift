@@ -40,6 +40,12 @@ class ViewController: UITableViewController {
             action: #selector(promptForAnswer)
         )
         
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .refresh,
+            target: self,
+            action: #selector(startGame)
+        )
+        
         // Load words from "start.txt" file
         if let startWordURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordURL) {
@@ -55,7 +61,7 @@ class ViewController: UITableViewController {
         startGame()
     }
     
-    func startGame() {
+    @objc func startGame() {
         title = words.randomElement()
         usedWords.removeAll(keepingCapacity: true)
         tableView.reloadData()
@@ -86,17 +92,29 @@ class ViewController: UITableViewController {
     }
     
     func isOriginal(word: String) -> Answer {
-        let status = !usedWords.contains(word)
-        
-        if status { return Answer() }
-        return Answer(
-            status: status,
+        let ans = Answer(
+            status: false,
             errorTitle: "Word already used!",
             errorMsg: "Be more original!"
         )
+
+        if  word.lowercased() == title?.lowercased() { return ans }
+        
+        let status = !usedWords.contains(word)
+        
+        if status { return Answer() }
+        return ans
     }
     
     func isReal(word: String) -> Answer {
+        let ans = Answer(
+            status: false,
+            errorTitle: "Word not recognizes",
+            errorMsg: "You can't just make up words, you know!"
+        )
+        
+        if word.count < 3 { return ans }
+        
         let checker = UITextChecker()
         let range = NSRange(location: 0, length: word.utf16.count)
         let misspelledRange = checker.rangeOfMisspelledWord(
@@ -106,25 +124,23 @@ class ViewController: UITableViewController {
             wrap: false,
             language: "en"
         )
+        
         let status = misspelledRange.location == NSNotFound
         if !status {
-            return Answer(
-                status: false,
-                errorTitle: "Word not recognizes",
-                errorMsg: "You can't just make up words, you know!"
-            )
+            return ans
         } else { return Answer() }
     }
 
     /// Add the `answer` to `usedWords` if  the `answer` is original, real and possible.
     func submit(_ answer: String) {
         let lowerAnswer = answer.lowercased()
+        
         let original = isOriginal(word: lowerAnswer)
         let real = isReal(word: lowerAnswer)
         let possible = isPossible(word: lowerAnswer)
         
         if possible.status && real.status && original.status {
-            usedWords.insert(answer, at: 0)
+            usedWords.insert(answer.lowercased(), at: 0)
             
             let indexPath = IndexPath(row: 0, section: 0)
             tableView.insertRows(at: [indexPath], with: .automatic)
@@ -155,7 +171,6 @@ class ViewController: UITableViewController {
         present(ac, animated: true)
     }
     
-    
     // TableView Configs
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return usedWords.count
@@ -167,7 +182,6 @@ class ViewController: UITableViewController {
         cell.textLabel?.text = usedWords[indexPath.row]
         return cell
     }
-
 
 }
 
