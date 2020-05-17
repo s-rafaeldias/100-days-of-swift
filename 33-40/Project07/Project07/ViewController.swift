@@ -11,11 +11,32 @@ import UIKit
 class ViewController: UITableViewController {
 
     var petitions = [Petition]()
+    var filteredPetitions = [Petition]()
+    var urlString: String?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let urlString: String
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .done,
+            target: self,
+            action: #selector(showCredits)
+        )
+        
+        let filterDataButton = UIBarButtonItem(
+            barButtonSystemItem: .search,
+            target: self,
+            action: #selector(filterData)
+        )
+        
+        let reloadDataButton = UIBarButtonItem(
+            barButtonSystemItem: .refresh,
+            target: self,
+            action: #selector(resetData)
+        )
+        
+        navigationItem.setRightBarButtonItems([filterDataButton, reloadDataButton], animated: true)
+
         
         if navigationController?.tabBarItem.tag == 1 {
             urlString = "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
@@ -23,7 +44,7 @@ class ViewController: UITableViewController {
             urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
         }
         
-        if let url = URL(string: urlString) {
+        if let url = URL(string: urlString!) {
             if let data = try? Data(contentsOf: url) {
                 parse(json: data)
                 return
@@ -31,6 +52,40 @@ class ViewController: UITableViewController {
         }
         
         showError()
+    }
+    
+    @objc func resetData() {
+        filteredPetitions = petitions
+        tableView.reloadData()
+    }
+    
+    @objc func showCredits() {
+        let ac = UIAlertController(
+            title: "Credits",
+            message: "The data comes from \(urlString!)",
+            preferredStyle: .alert
+        )
+        ac.addAction(UIAlertAction(title: "Ok", style: .default))
+        
+        present(ac, animated: true)
+    }
+    
+    @objc func filterData() {
+        let ac = UIAlertController(title: "Filter data", message: "Filter title", preferredStyle: .alert)
+        ac.addTextField()
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        ac.addAction(UIAlertAction(title: "Ok", style: .default) {
+            [weak self, weak ac] _ in
+            if let textToFilter = ac?.textFields?[0].text {
+                self!.filteredPetitions = self!.petitions.filter {
+                    $0.title.contains(textToFilter)
+                }
+            }
+            self?.tableView.reloadData()
+            return
+        })
+        
+        present(ac, animated: true)
     }
     
     func showError() {
@@ -43,17 +98,18 @@ class ViewController: UITableViewController {
         let decoder = JSONDecoder()
         if let jsonPetitions = try? decoder.decode(Petitions.self, from: json) {
             petitions = jsonPetitions.results
+            filteredPetitions = petitions
             tableView.reloadData()
         }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return petitions.count
+        return filteredPetitions.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        let petition = petitions[indexPath.row]
+        let petition = filteredPetitions[indexPath.row]
         cell.textLabel?.text = petition.title
         cell.detailTextLabel?.text = petition.body
         
@@ -62,7 +118,7 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = DetailViewController()
-        vc.detailItem = petitions[indexPath.row]
+        vc.detailItem = filteredPetitions[indexPath.row]
         navigationController?.pushViewController(vc, animated: true)
     }
 
