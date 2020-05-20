@@ -71,6 +71,7 @@ class ViewController: UIViewController {
         clear.translatesAutoresizingMaskIntoConstraints = false
         clear.setTitle("CLEAR", for: .normal)
         clear.addTarget(self, action: #selector(clearTapped), for: .touchUpInside)
+        
         view.addSubview(clear)
         
         let buttonsView = UIView()
@@ -119,7 +120,9 @@ class ViewController: UIViewController {
                 letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 36)
                 letterButton.setTitle("WWW", for: .normal)
                 letterButton.addTarget(self, action: #selector(letterTapped), for: .touchUpInside)
-
+                letterButton.layer.borderColor = UIColor.lightGray.cgColor
+                letterButton.layer.borderWidth = 0.4
+                
                 let frame = CGRect(x: col * width, y: row * height, width: width, height: height)
                 letterButton.frame = frame
                 
@@ -164,7 +167,23 @@ class ViewController: UIViewController {
                 
                 present(ac, animated: true)
             }
+            
+            return
         }
+        
+        let ac = UIAlertController(title: "Wrong answer", message: "The word \(answerText) is not the answer", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Try again", style: .default, handler: clearAnswer))
+        present(ac, animated: true)
+    }
+    
+    func clearAnswer(_ action: UIAlertAction) {
+        currentAnswer.text = ""
+        
+        for button in activatedButtons {
+            button.isHidden = false
+        }
+        
+        activatedButtons.removeAll()
     }
     
     @objc func clearTapped(_ sender: UIButton) {
